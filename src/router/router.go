@@ -14,8 +14,8 @@ func MuxRouter() *mux.Router {
 
 	ecgRoute := r.PathPrefix("/ecg").Subrouter()
 	ecgRoute.
-		Path("/hello").
-		Methods("GET").
+		Path("/upload").
+		Methods("POST").
 		HandlerFunc(handlers.HelloHandler)
 
 	return r
