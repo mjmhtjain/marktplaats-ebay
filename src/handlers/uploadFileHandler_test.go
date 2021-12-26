@@ -16,10 +16,11 @@ func TestUploadHandler(t *testing.T) {
 	t.Run("IF handler receives a file, THEN it does something", func(t *testing.T) {
 		filePath, _ := os.Getwd()
 		filePath += "/fixtures/Workbook2.csv"
-		bytesBuffer, datatype := uploadFile(t, filePath)
+		bytesBuffer, multipartFormDatatype := uploadFile(t, filePath)
+
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/upload", bytesBuffer)
-		req.Header.Set("Content-Type", datatype)
+		req.Header.Set("Content-Type", multipartFormDatatype)
 
 		UploadHandler(w, req)
 

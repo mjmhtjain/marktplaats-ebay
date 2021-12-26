@@ -1,30 +1,32 @@
 package handlers
 
 import (
+	"bytes"
+	"fmt"
 	"io"
+	"mime/multipart"
 	"net/http"
-	"os"
 )
 
 // UploadHandler accepts multipart/form-data file upload of .csv and .prn extension
 // TODO: logger
 func UploadHandler(w http.ResponseWriter, req *http.Request) {
-	file, handler, err := req.FormFile("file")
+	multipartFile, _, err := req.FormFile("file")
 	if err != nil {
 		// panic ??
 		panic(err)
 	}
-	defer file.Close()
 
-	// fileName := req.FormValue("file_name")
-	f, err := os.OpenFile(handler.Filename, os.O_WRONLY|os.O_CREATE, 0666)
-	if err != nil {
-		// panic ??
-		panic(err)
-	}
-	defer f.Close()
+	readFile(multipartFile)
 
-	_, _ = io.WriteString(w, "File Uploaded successfully")
-	_, _ = io.Copy(f, file)
-	// w.Write([]byte("Hello, world!\n"))
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("File Uploaded successfully"))
+}
+
+func readFile(multipartFile multipart.File) {
+	defer multipartFile.Close()
+
+	buff := new(bytes.Buffer)
+	io.Copy(buff, multipartFile)
+	fmt.Println(buff.String())
 }
