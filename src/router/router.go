@@ -6,7 +6,9 @@ import (
 )
 
 func MuxRouter() *mux.Router {
+	ecgHandler := handlers.NewECGHandler()
 	r := mux.NewRouter()
+
 	r.
 		Path("/health").
 		Methods("GET").
@@ -16,7 +18,7 @@ func MuxRouter() *mux.Router {
 	ecgRoute.
 		Path("/upload").
 		Methods("POST").
-		HandlerFunc(handlers.UploadHandler)
+		HandlerFunc(ecgHandler.UploadHandler)
 
 	return r
 }
