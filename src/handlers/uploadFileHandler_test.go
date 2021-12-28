@@ -13,9 +13,31 @@ import (
 )
 
 func TestUploadHandler(t *testing.T) {
-	t.Run("IF handler receives a file, THEN it does something", func(t *testing.T) {
+
+	t.Run("IF handler receives a valid csv,prn file", func(t *testing.T) {
+		t.Run("THEN it returns 201 status code", func(t *testing.T) {
+			filePath, _ := os.Getwd()
+			filePath += "/fixtures/Workbook2.csv"
+			bytesBuffer, multipartFormDatatype := uploadFile(t, filePath)
+
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest(http.MethodGet, "/upload", bytesBuffer)
+			req.Header.Set("Content-Type", multipartFormDatatype)
+
+			UploadHandler(w, req)
+
+			assert.Equal(t, http.StatusOK, w.Code)
+		})
+
+		t.Run("IF the service fails downstream, THEN it returns 500 error code", func(t *testing.T) {
+
+		})
+
+	})
+
+	t.Run("IF handler receives a file with invalid file extension, THEN returns 400 response code", func(t *testing.T) {
 		filePath, _ := os.Getwd()
-		filePath += "/fixtures/Workbook2.csv"
+		filePath += "/fixtures/Workbook2.pdf"
 		bytesBuffer, multipartFormDatatype := uploadFile(t, filePath)
 
 		w := httptest.NewRecorder()
@@ -24,7 +46,31 @@ func TestUploadHandler(t *testing.T) {
 
 		UploadHandler(w, req)
 
-		assert.Equal(t, w.Code, http.StatusOK)
+		assert.Equal(t, w.Code, http.StatusBadRequest)
+	})
+
+	t.Run("IF handler receives a csv file with invalid data format, THEN returns 400 response code", func(t *testing.T) {
+		filePath, _ := os.Getwd()
+		filePath += "/fixtures/Workbook2_invalid.csv"
+		bytesBuffer, multipartFormDatatype := uploadFile(t, filePath)
+
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/upload", bytesBuffer)
+		req.Header.Set("Content-Type", multipartFormDatatype)
+
+		UploadHandler(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("IF handler receives no file, THEN returns 400 response code", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/upload", nil)
+		req.Header.Set("Content-Type", "multipart/form-data")
+
+		UploadHandler(w, req)
+
+		assert.Equal(t, w.Code, http.StatusBadRequest)
 	})
 }
 
