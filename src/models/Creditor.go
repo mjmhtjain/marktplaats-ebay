@@ -5,6 +5,6 @@ type Creditor struct {
 	Address  string  `csv:"Address"`
 	Postcode string  `csv:"Postcode"`
 	Phone    string  `csv:"Phone"`
-	Credit   float64 `csv:"Credit"`
+	Credit   float64 `csv:"Credit Limit"`
 	Birthday string  `csv:"Birthday"`
 }
