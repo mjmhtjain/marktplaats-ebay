@@ -13,9 +13,10 @@ import (
 )
 
 func TestUploadHandler(t *testing.T) {
+	ecgHandler := NewECGHandler()
 
-	t.Run("IF handler receives a valid csv,prn file", func(t *testing.T) {
-		t.Run("THEN it returns 201 status code", func(t *testing.T) {
+	t.Run("IF handler receives a file", func(t *testing.T) {
+		t.Run("IF passed a valid CSV file, THEN it returns 201 status code", func(t *testing.T) {
 			filePath, _ := os.Getwd()
 			filePath += "/fixtures/Workbook2.csv"
 			bytesBuffer, multipartFormDatatype := uploadFile(t, filePath)
@@ -24,9 +25,13 @@ func TestUploadHandler(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, "/upload", bytesBuffer)
 			req.Header.Set("Content-Type", multipartFormDatatype)
 
-			UploadHandler(w, req)
+			ecgHandler.UploadHandler(w, req)
 
 			assert.Equal(t, http.StatusOK, w.Code)
+		})
+
+		t.Run("IF passed a valid PRN file, THEN it returns 201 status code", func(t *testing.T) {
+
 		})
 
 		t.Run("IF the service fails downstream, THEN it returns 500 error code", func(t *testing.T) {
@@ -44,7 +49,7 @@ func TestUploadHandler(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/upload", bytesBuffer)
 		req.Header.Set("Content-Type", multipartFormDatatype)
 
-		UploadHandler(w, req)
+		ecgHandler.UploadHandler(w, req)
 
 		assert.Equal(t, w.Code, http.StatusBadRequest)
 	})
@@ -58,7 +63,7 @@ func TestUploadHandler(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/upload", bytesBuffer)
 		req.Header.Set("Content-Type", multipartFormDatatype)
 
-		UploadHandler(w, req)
+		ecgHandler.UploadHandler(w, req)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
@@ -68,7 +73,7 @@ func TestUploadHandler(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/upload", nil)
 		req.Header.Set("Content-Type", "multipart/form-data")
 
-		UploadHandler(w, req)
+		ecgHandler.UploadHandler(w, req)
 
 		assert.Equal(t, w.Code, http.StatusBadRequest)
 	})

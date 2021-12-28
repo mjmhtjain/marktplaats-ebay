@@ -16,7 +16,7 @@ func MuxRouter() *mux.Router {
 	ecgRoute.
 		Path("/upload").
 		Methods("POST").
-		HandlerFunc(handlers.HelloHandler)
+		HandlerFunc(handlers.UploadHandler)
 
 	return r
 }

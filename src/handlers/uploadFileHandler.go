@@ -3,7 +3,7 @@ package handlers
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
+	"errors"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -11,11 +11,22 @@ import (
 
 	"github.com/gocarina/gocsv"
 	"github.com/mjmhtjain/marktplaats-ebay/src/models"
+	"github.com/mjmhtjain/marktplaats-ebay/src/services"
 )
+
+type ECGHandler struct {
+	creditService services.CreditService
+}
+
+func NewECGHandler() *ECGHandler {
+	return &ECGHandler{
+		creditService: services.NewCreditService(),
+	}
+}
 
 // UploadHandler accepts multipart/form-data file upload of .csv and .prn extension
 // TODO: logger
-func UploadHandler(w http.ResponseWriter, req *http.Request) {
+func (ecg *ECGHandler) UploadHandler(w http.ResponseWriter, req *http.Request) {
 	multipartFile, fileHeader, err := req.FormFile("file")
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -23,20 +34,13 @@ func UploadHandler(w http.ResponseWriter, req *http.Request) {
 	}
 	defer multipartFile.Close()
 
-	// check invalid file extension
-	if !(strings.HasSuffix(fileHeader.Filename, ".csv") ||
-		strings.HasSuffix(fileHeader.Filename, ".prn")) {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	creditor, err := readFile(multipartFile, fileHeader)
+	creditors, err := readFile(multipartFile, fileHeader)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	bytes, err := json.Marshal(creditor)
+	bytes, err := json.Marshal(creditors)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -47,16 +51,36 @@ func UploadHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func readFile(multipartFile multipart.File, fileHeader *multipart.FileHeader) ([]models.Creditor, error) {
-	creditor := []models.Creditor{}
+	var err error
+	var creditors []models.Creditor
+
 	buff := new(bytes.Buffer)
 	io.Copy(buff, multipartFile)
-	fmt.Println(buff.String())
 
-	err := gocsv.UnmarshalBytes(buff.Bytes(), &creditor)
-	// err := json.Unmarshal(buff.Bytes(), &creditor)
+	if strings.HasSuffix(fileHeader.Filename, ".csv") {
+		creditors, err = readCSVFile(buff)
+	} else if strings.HasSuffix(fileHeader.Filename, ".prn") {
+		creditors, err = readPRNFile(buff)
+	} else {
+		return nil, errors.New("invalid extension")
+	}
+
+	if err != nil {
+		return nil, errors.New("parsing error")
+	}
+	return creditors, nil
+}
+
+func readCSVFile(buff *bytes.Buffer) ([]models.Creditor, error) {
+	creditors := []models.Creditor{}
+	err := gocsv.UnmarshalBytes(buff.Bytes(), &creditors)
 	if err != nil {
 		return nil, err
 	}
 
-	return creditor, nil
+	return creditors, nil
+}
+
+func readPRNFile(buff *bytes.Buffer) ([]models.Creditor, error) {
+	return nil, nil
 }
