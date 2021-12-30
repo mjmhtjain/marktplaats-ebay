@@ -77,6 +77,20 @@ func TestUploadHandler(t *testing.T) {
 
 		assert.Equal(t, w.Code, http.StatusBadRequest)
 	})
+
+	t.Run("IF handler a valid file with no data, THEN returns 201 response code", func(t *testing.T) {
+		filePath, _ := os.Getwd()
+		filePath += "/fixtures/Workbook2_empty.csv"
+		bytesBuffer, multipartFormDatatype := uploadFile(t, filePath)
+
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/upload", bytesBuffer)
+		req.Header.Set("Content-Type", multipartFormDatatype)
+
+		ecgHandler.UploadHandler(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+	})
 }
 
 func uploadFile(t *testing.T, filePath string) (*bytes.Buffer, string) {
