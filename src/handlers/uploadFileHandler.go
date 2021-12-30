@@ -40,7 +40,13 @@ func (ecg *ECGHandler) UploadHandler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	bytes, err := json.Marshal(creditors)
+	uploadedCreaditors, err := ecg.creditService.UploadCreditorInfo(creditors)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	bytes, err := json.Marshal(uploadedCreaditors)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
