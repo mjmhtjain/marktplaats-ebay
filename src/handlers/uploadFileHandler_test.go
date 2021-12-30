@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -15,9 +16,12 @@ import (
 )
 
 func TestUploadHandler(t *testing.T) {
-	ecgHandler := NewECGHandler()
+	fakeService := fakeCreditService{}
+	ecgHandler := handlerWithFakeService(&fakeService)
 
 	t.Run("IF handler receives a valid file", func(t *testing.T) {
+		fakeService.err = nil
+
 		t.Run("IF file is CSV, THEN it returns 201 status code", func(t *testing.T) {
 			filePath := "/fixtures/Workbook2.csv"
 			bytesBuffer, multipartFormDatatype := uploadFile(t, filePath)
@@ -49,7 +53,17 @@ func TestUploadHandler(t *testing.T) {
 		})
 
 		t.Run("IF there is a downstream service error, THEN it returns 500 error code", func(t *testing.T) {
+			fakeService.err = errors.New("Un expected error")
+			filePath := "/fixtures/Workbook2.csv"
+			bytesBuffer, multipartFormDatatype := uploadFile(t, filePath)
 
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest(http.MethodGet, "/upload", bytesBuffer)
+			req.Header.Set("Content-Type", multipartFormDatatype)
+
+			ecgHandler.UploadHandler(w, req)
+
+			assert.Equal(t, http.StatusInternalServerError, w.Code)
 		})
 
 	})
@@ -115,15 +129,21 @@ func uploadFile(t *testing.T, relativePath string) (*bytes.Buffer, string) {
 	return body, writer.FormDataContentType()
 }
 
-type fakeCreditService struct {
+func handlerWithFakeService(fakeService services.CreditService) *ECGHandler {
+	return &ECGHandler{
+		creditService: fakeService,
+	}
 }
 
-func newFakeCreditService() services.CreditService {
-	return &fakeCreditService{}
+type fakeCreditService struct {
+	err error
 }
 
 func (ecg *fakeCreditService) UploadCreditorInfo(creditors []models.Creditor) ([]models.Creditor, error) {
-	return nil, nil
+	if ecg.err != nil {
+		return nil, ecg.err
+	}
+	return creditors, nil
 }
 
 func (ecg *fakeCreditService) GetCreditors() {
