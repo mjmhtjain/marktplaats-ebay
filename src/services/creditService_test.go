@@ -1,6 +1,7 @@
 package services
 
 import (
+	"errors"
 	"os"
 	"testing"
 
@@ -34,7 +35,14 @@ func Test_ecgCreditService_UploadCreditorInfo(t *testing.T) {
 	})
 
 	t.Run("IF daoService returns an error, THEN expect error", func(t *testing.T) {
+		creditors := readCSVFile(t, "/../../resources/Workbook2.csv")
+		expErr := errors.New("Unexpected error")
+		fake.expectedErr = expErr
 
+		_, err := creditService.UploadCreditorInfo(creditors)
+
+		assert.NotNil(t, err)
+		assert.Equal(t, expErr, err)
 	})
 }
 

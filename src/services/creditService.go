@@ -21,6 +21,10 @@ func NewCreditService() CreditService {
 }
 
 func (ecg *ecgCreditService) UploadCreditorInfo(creditors []models.Creditor) ([]models.Creditor, error) {
+	if len(creditors) == 0 {
+		return creditors, nil
+	}
+
 	insertedCreditors, err := ecg.creditDAO.InsertAll(creditors)
 	if err != nil {
 		return nil, err
