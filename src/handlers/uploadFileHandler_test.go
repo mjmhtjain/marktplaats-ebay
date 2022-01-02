@@ -23,7 +23,7 @@ func TestUploadHandler(t *testing.T) {
 		fakeService.err = nil
 
 		t.Run("IF file is CSV, THEN it returns 201 status code", func(t *testing.T) {
-			filePath := "/fixtures/Workbook2.csv"
+			filePath := "/../../resources/Workbook2.csv"
 			bytesBuffer, multipartFormDatatype := uploadFile(t, filePath)
 
 			w := httptest.NewRecorder()
@@ -36,7 +36,7 @@ func TestUploadHandler(t *testing.T) {
 		})
 
 		t.Run("IF file has no data, THEN returns 201 response code", func(t *testing.T) {
-			filePath := "/fixtures/Workbook2_empty.csv"
+			filePath := "/../../resources/Workbook2_empty.csv"
 			bytesBuffer, multipartFormDatatype := uploadFile(t, filePath)
 
 			w := httptest.NewRecorder()
@@ -54,7 +54,7 @@ func TestUploadHandler(t *testing.T) {
 
 		t.Run("IF there is a downstream service error, THEN it returns 500 error code", func(t *testing.T) {
 			fakeService.err = errors.New("Un expected error")
-			filePath := "/fixtures/Workbook2.csv"
+			filePath := "/../../resources/Workbook2.csv"
 			bytesBuffer, multipartFormDatatype := uploadFile(t, filePath)
 
 			w := httptest.NewRecorder()
@@ -69,7 +69,7 @@ func TestUploadHandler(t *testing.T) {
 	})
 
 	t.Run("IF handler receives a file with invalid file extension, THEN returns 400 response code", func(t *testing.T) {
-		filePath := "/fixtures/Workbook2.pdf"
+		filePath := "/../../resources/Workbook2.pdf"
 		bytesBuffer, multipartFormDatatype := uploadFile(t, filePath)
 
 		w := httptest.NewRecorder()
@@ -83,7 +83,7 @@ func TestUploadHandler(t *testing.T) {
 
 	t.Run("IF handler receives a csv file with invalid data format, THEN returns 400 response code", func(t *testing.T) {
 		// filePath, _ := os.Getwd()
-		filePath := "/fixtures/Workbook2_invalid.csv"
+		filePath := "/../../resources/Workbook2_invalid.csv"
 		bytesBuffer, multipartFormDatatype := uploadFile(t, filePath)
 
 		w := httptest.NewRecorder()
