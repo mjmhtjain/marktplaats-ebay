@@ -8,11 +8,13 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/mjmhtjain/marktplaats-ebay/src/router"
+	"github.com/mjmhtjain/marktplaats-ebay/src/setup"
 )
 
 func main() {
 	godotenv.Load(".env")
 	port := os.Getenv("PORT")
+	setup.InitMongoClient()
 
 	r := router.MuxRouter()
 	http.Handle("/", r)
