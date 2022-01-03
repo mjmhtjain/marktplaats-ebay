@@ -46,7 +46,7 @@ func (dao *ecgCreditDAO) GetAll() ([]models.Creditor, error) {
 	ctx, cancel2 := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel2()
 
-	err = cursor.All(ctx, &cr)
+	err = cursor.All(ctx, &cr) // might cause overflow for large number of documents
 	if err != nil {
 		return nil, err
 	}
