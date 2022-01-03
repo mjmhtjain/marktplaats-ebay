@@ -7,6 +7,7 @@ import (
 
 	"github.com/mjmhtjain/marktplaats-ebay/src/models"
 	"github.com/mjmhtjain/marktplaats-ebay/src/setup"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -31,7 +32,26 @@ func NewECGCreditDAO() CreditDAO {
 }
 
 func (dao *ecgCreditDAO) GetAll() ([]models.Creditor, error) {
-	return nil, nil
+	cr := []models.Creditor{}
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	fil := bson.M{}
+
+	cursor, err := dao.collection.Find(ctx, fil)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx, cancel2 := context.WithTimeout(ctx, 2*time.Second)
+	defer cancel2()
+
+	err = cursor.All(ctx, &cr)
+	if err != nil {
+		return nil, err
+	}
+
+	return cr, nil
 }
 
 func (dao *ecgCreditDAO) InsertAll(creditors []models.Creditor) ([]models.Creditor, error) {
