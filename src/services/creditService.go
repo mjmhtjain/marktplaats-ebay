@@ -20,6 +20,15 @@ func NewCreditService() CreditService {
 	}
 }
 
+func (ecg *ecgCreditService) GetCreditors() ([]models.Creditor, error) {
+	creditors, err := ecg.creditDAO.GetAll()
+	if err != nil {
+		return nil, err
+	}
+
+	return creditors, nil
+}
+
 func (ecg *ecgCreditService) UploadCreditorInfo(creditors []models.Creditor) ([]models.Creditor, error) {
 	if len(creditors) == 0 {
 		return creditors, nil
@@ -31,8 +40,4 @@ func (ecg *ecgCreditService) UploadCreditorInfo(creditors []models.Creditor) ([]
 	}
 
 	return insertedCreditors, nil
-}
-
-func (ecg *ecgCreditService) GetCreditors() ([]models.Creditor, error) {
-	return nil, nil
 }

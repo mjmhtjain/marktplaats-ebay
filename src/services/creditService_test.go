@@ -11,6 +11,29 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func Test_ecgCreditService_GetCreditors(t *testing.T) {
+	fake := fakeCreditDAO{}
+	creditService := newCreditService(&fake)
+
+	t.Run("IF success scenario, THEN expect creditors", func(t *testing.T) {
+		expCreditors := readCSVFile(t, "/../../resources/Workbook2_small.csv")
+		fake.expectedCreditors = expCreditors
+
+		actualCreditors, err := creditService.GetCreditors()
+		assert.Nil(t, err)
+		assert.Equal(t, expCreditors, actualCreditors)
+	})
+
+	t.Run("IF downstream error, THEN expect error", func(t *testing.T) {
+		expErr := errors.New("Some DAO error")
+		fake.expectedErr = expErr
+
+		actualCreditors, err := creditService.GetCreditors()
+		assert.Nil(t, actualCreditors)
+		assert.Equal(t, expErr, err)
+	})
+}
+
 func Test_ecgCreditService_UploadCreditorInfo(t *testing.T) {
 	fake := fakeCreditDAO{}
 	creditService := newCreditService(&fake)
@@ -53,10 +76,19 @@ func newCreditService(creditDAO daos.CreditDAO) CreditService {
 }
 
 type fakeCreditDAO struct {
-	expectedErr error
+	expectedErr       error
+	expectedCreditors []models.Creditor
 }
 
 func (dao *fakeCreditDAO) GetAll() ([]models.Creditor, error) {
+	if dao.expectedErr != nil {
+		return nil, dao.expectedErr
+	}
+
+	if dao.expectedCreditors != nil {
+		return dao.expectedCreditors, nil
+	}
+
 	return nil, nil
 }
 
