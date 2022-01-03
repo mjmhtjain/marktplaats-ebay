@@ -35,7 +35,7 @@ func (dao *ecgCreditDAO) GetAll() ([]models.Creditor, error) {
 }
 
 func (dao *ecgCreditDAO) InsertAll(creditors []models.Creditor) ([]models.Creditor, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
 	arr := []interface{}{}
