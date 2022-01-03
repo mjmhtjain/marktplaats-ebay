@@ -7,7 +7,7 @@ import (
 
 type CreditService interface {
 	UploadCreditorInfo(creditors []models.Creditor) ([]models.Creditor, error)
-	GetCreditors()
+	GetCreditors() ([]models.Creditor, error)
 }
 
 type ecgCreditService struct {
@@ -33,6 +33,6 @@ func (ecg *ecgCreditService) UploadCreditorInfo(creditors []models.Creditor) ([]
 	return insertedCreditors, nil
 }
 
-func (ecg *ecgCreditService) GetCreditors() {
-
+func (ecg *ecgCreditService) GetCreditors() ([]models.Creditor, error) {
+	return nil, nil
 }

@@ -24,6 +24,25 @@ func NewECGHandler() *ECGHandler {
 	}
 }
 
+// GetAll accepts multipart/form-data file upload of .csv and .prn extension
+// TODO: logger
+func (ecg *ECGHandler) GetAll(w http.ResponseWriter, req *http.Request) {
+	creditors, err := ecg.creditService.GetCreditors()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	bytes, err := json.Marshal(creditors)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(bytes)
+}
+
 // UploadHandler accepts multipart/form-data file upload of .csv and .prn extension
 // TODO: logger
 func (ecg *ECGHandler) UploadHandler(w http.ResponseWriter, req *http.Request) {
@@ -51,16 +70,6 @@ func (ecg *ECGHandler) UploadHandler(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-
-	w.WriteHeader(http.StatusOK)
-	w.Write(bytes)
-}
-
-// GetAll accepts multipart/form-data file upload of .csv and .prn extension
-// TODO: logger
-func (ecg *ECGHandler) GetAll(w http.ResponseWriter, req *http.Request) {
-	message := "Hello"
-	bytes := []byte(message)
 
 	w.WriteHeader(http.StatusOK)
 	w.Write(bytes)

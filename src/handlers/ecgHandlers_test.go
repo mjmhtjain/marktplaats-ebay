@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"io"
 	"mime/multipart"
@@ -10,12 +11,46 @@ import (
 	"os"
 	"testing"
 
+	"github.com/gocarina/gocsv"
 	"github.com/mjmhtjain/marktplaats-ebay/src/models"
 	"github.com/mjmhtjain/marktplaats-ebay/src/services"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestUploadHandler(t *testing.T) {
+func TestECGHandler_GetAll(t *testing.T) {
+	t.Run("IF success scenario, THEN expect 200 code response, and some creditors data", func(t *testing.T) {
+		expCreditors := readCreditorsFromCSV(t, "/../../resources/Workbook2_small.csv")
+		fakeService := fakeCreditService{expCreditors: expCreditors}
+		ecgHandler := handlerWithFakeService(&fakeService)
+
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+
+		ecgHandler.GetAll(w, req)
+
+		actualCreditors := []models.Creditor{}
+		err := json.Unmarshal(w.Body.Bytes(), &actualCreditors)
+
+		assert.Nil(t, err)
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Equal(t, expCreditors, actualCreditors)
+	})
+
+	t.Run("IF there is a downstream failure, THEN expect 500 code response", func(t *testing.T) {
+		expErr := errors.New("Some error")
+		fakeService := fakeCreditService{err: expErr}
+		ecgHandler := handlerWithFakeService(&fakeService)
+
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+
+		ecgHandler.GetAll(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
+}
+
+func TestECGHandler_UploadHandler(t *testing.T) {
 	fakeService := fakeCreditService{}
 	ecgHandler := handlerWithFakeService(&fakeService)
 
@@ -107,6 +142,23 @@ func TestUploadHandler(t *testing.T) {
 
 }
 
+func readCreditorsFromCSV(t *testing.T, relativePath string) []models.Creditor {
+	wd, _ := os.Getwd()
+	filePath := wd + relativePath
+	file, err := os.Open(filePath)
+	if err != nil {
+		t.Error(err)
+	}
+	defer file.Close()
+
+	creditors := []models.Creditor{}
+	if err := gocsv.UnmarshalFile(file, &creditors); err != nil {
+		t.Error(err)
+	}
+
+	return creditors
+}
+
 func uploadFile(t *testing.T, relativePath string) (*bytes.Buffer, string) {
 	wd, _ := os.Getwd()
 	filePath := wd + relativePath
@@ -136,7 +188,8 @@ func handlerWithFakeService(fakeService services.CreditService) *ECGHandler {
 }
 
 type fakeCreditService struct {
-	err error
+	err          error
+	expCreditors []models.Creditor
 }
 
 func (ecg *fakeCreditService) UploadCreditorInfo(creditors []models.Creditor) ([]models.Creditor, error) {
@@ -146,6 +199,14 @@ func (ecg *fakeCreditService) UploadCreditorInfo(creditors []models.Creditor) ([
 	return creditors, nil
 }
 
-func (ecg *fakeCreditService) GetCreditors() {
+func (ecg *fakeCreditService) GetCreditors() ([]models.Creditor, error) {
+	if ecg.err != nil {
+		return nil, ecg.err
+	}
 
+	if ecg.expCreditors != nil {
+		return ecg.expCreditors, nil
+	}
+
+	return nil, nil
 }
