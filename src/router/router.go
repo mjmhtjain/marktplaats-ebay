@@ -20,5 +20,10 @@ func MuxRouter() *mux.Router {
 		Methods("POST").
 		HandlerFunc(ecgHandler.UploadHandler)
 
+	ecgRoute.
+		Path("/getAll").
+		Methods("GET").
+		HandlerFunc(ecgHandler.GetAll)
+
 	return r
 }

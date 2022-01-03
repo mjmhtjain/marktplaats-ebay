@@ -56,6 +56,16 @@ func (ecg *ECGHandler) UploadHandler(w http.ResponseWriter, req *http.Request) {
 	w.Write(bytes)
 }
 
+// GetAll accepts multipart/form-data file upload of .csv and .prn extension
+// TODO: logger
+func (ecg *ECGHandler) GetAll(w http.ResponseWriter, req *http.Request) {
+	message := "Hello"
+	bytes := []byte(message)
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(bytes)
+}
+
 func readFile(multipartFile multipart.File, fileHeader *multipart.FileHeader) ([]models.Creditor, error) {
 	var err error
 	var creditors []models.Creditor
