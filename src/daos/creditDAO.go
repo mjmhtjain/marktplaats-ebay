@@ -36,9 +36,7 @@ func (dao *ecgCreditDAO) GetAll() ([]models.Creditor, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
-	fil := bson.M{}
-
-	cursor, err := dao.collection.Find(ctx, fil)
+	cursor, err := dao.collection.Find(ctx, bson.M{})
 	if err != nil {
 		return nil, err
 	}
